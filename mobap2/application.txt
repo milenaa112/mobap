@@ -1,0 +1,14 @@
+public class MyApp extends Application {
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel kanal1 = new NotificationChannel("kanal1", "Boje", NotificationManager.IMPORTANCE_HIGH);
+            NotificationChannel kanal2 = new NotificationChannel("kanal2", "Muzika", NotificationManager.IMPORTANCE_HIGH);
+
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(kanal1);
+            manager.createNotificationChannel(kanal2);
+        }
+    }
+}

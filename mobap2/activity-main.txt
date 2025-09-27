@@ -1,0 +1,25 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/btnOboji"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Oboji"
+        android:textColor="@android:color/black" />
+
+    <Button
+        android:id="@+id/btnReprodukuj"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Reprodukuj" />
+
+    <Button
+        android:id="@+id/btnDodaj"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Dodaj" />
+</LinearLayout>

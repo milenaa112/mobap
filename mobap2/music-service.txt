@@ -1,0 +1,33 @@
+public class MusicService extends Service {
+    MediaPlayer player;
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        player = MediaPlayer.create(this, R.raw.zvuk);
+        player.setLooping(true);
+        player.start();
+
+        // Notifikacija sa STOP akcijom
+        Intent stopIntent = new Intent(this, StopReceiver.class);
+        PendingIntent piStop = PendingIntent.getBroadcast(this, 0, stopIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "kanal2")
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentTitle("Muzika")
+                .setContentText("Reprodukcija u toku")
+                .addAction(R.drawable.ic_launcher_foreground, "Stop", piStop);
+
+        startForeground(2, builder.build());
+        return START_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        player.stop();
+        player.release();
+        super.onDestroy();
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) { return null; }
+}
