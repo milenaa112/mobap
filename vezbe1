@@ -1,0 +1,133 @@
+import pandas as pd
+
+df_alltime = pd.read_csv('spotify_alltime_top100_songs.csv')
+df_artists_25 = pd.read_csv('spotify_wrapped_2025_top50_artists.csv')
+df_songs_25 = pd.read_csv('spotify_wrapped_2025_top50_songs.csv')
+
+#1.1 prikaz prvih pet redova
+print(df_alltime.head())
+print(df_artists_25.head())
+print(df_songs_25.head())
+
+#2.3 nazivi kolona
+print(df_alltime.columns)
+print(df_artists_25.columns)
+print(df_songs_25.columns)
+
+#1.3 provera praznih celija
+print(df_alltime.isnull().sum())
+
+#1.4 tipovi podataka
+print(df_alltime.dtypes)
+
+
+#2.1 filtriranje pop izvodjaca
+pop_artist = df_artists_25[df_artists_25['primary_genre'].str.contains('Pop')]
+print(pop_artist)
+
+
+#2.2 prebrojavanje zanrova
+genre_counts = df_artists_25['primary_genre'].value_counts()
+print(genre_counts)
+
+#2.3 top 5 drzava po broju izvodjaca
+top_countries = df_artists_25['country'].value_counts().head(5)
+print(top_countries)
+
+#2.4 sortiranje prema grammy nagradama 
+sorted_grammys = df_artists_25.sort_values(by='grammy_wins', ascending=False)
+print(sorted_grammys)
+
+#2.5 izvodjaci ispod 20 miliona pratilaca
+few_followers = df_artists_25[df_artists_25['followers_millions'] < 20]
+print(few_followers[['artist_name' , 'followers_millions']])
+
+#2.6 grupisati prema gender atributu
+grouped_gender = df_artists_25.groupby('gender')
+
+#2.7 prosek grammy nagrada po polu
+avg_grammys = df_artists_25.groupby('gender')['grammy_wins'].mean()
+print(avg_grammys)
+
+
+
+#3.1 top 5 izvodjaca po broju pesama na listi
+top_5_artist_count = df_songs_25['artist'].value_counts().head(5)
+print(top_5_artist_count)
+
+#3.2 suma strimova po izvodjacu
+# Grupišemo po artistu i sabiramo kolonu 'streams_2025_billions'
+total_streams = df_songs_25.groupby('artist')['streams_2025_billions'].sum().sort_values(ascending=False)
+print(total_streams)
+
+
+#pravimo kopiju da ne menjamo originalni DataFrame
+df_songs_exploded = df_songs_25.copy()
+
+#delimo string u koloni 'primary_genre' tamo gde je kosa crta i pravimo listu
+df_songs_exploded['primary_genre'] = df_songs_exploded['primary_genre'].str.split('/')
+
+#funkcija explode pravi novi red za svaki element iz liste
+df_songs_exploded = df_songs_exploded.explode('primary_genre')
+
+#3.3 prosek BPM po zanru
+avg_bpm_genre = df_songs_exploded.groupby('primary_genre')['bpm'].mean()
+print(avg_bpm_genre)
+
+#3.5 prosek danceability po zanru
+avg_dance_genre = df_songs_exploded.groupby('primary_genre') ['danceability'].mean()
+print(avg_dance_genre)
+
+#3.4 sortiranje po godini objavljivanja
+sorted_songs_year = df_songs_25.sort_values(by='release_year')
+print(sorted_songs_year[['song_title' , 'release_year']])
+
+#3.6 top 5 najakusticnijih pesama
+top_acoustic = df_songs_25.sort_values(by='acousticness', ascending=False).head(5)
+print(top_acoustic[['song_title', 'acousticness']])
+
+#3.7 broj pojavljivanja drzava
+country_counts_songs = df_songs_25['artist_country'].value_counts()
+print(country_counts_songs)
+
+
+
+
+#4.1 sortirati podatke prema godini objavljivanja (od najstarijih ka najnovijim)
+sorted_by_year_all = df_alltime.sort_values(by='release_year')
+print(sorted_by_year_all[['song_title' , 'release_year']])
+
+#4.2 izracunati prosek acousticness-a prema zanru
+df_alltime_exploded = df_alltime.copy()
+df_alltime_exploded['primary_genre'] = df_alltime_exploded['primary_genre'].str.split('/')
+df_alltime_exploded = df_alltime_exploded.explode('primary_genre')
+
+avg_acoustic_all = df_alltime_exploded.groupby('primary_genre')['acousticness'].mean()
+print(avg_acoustic_all)
+
+#4.3 ispisati broj pesama objavljenih u svakoj dekadi
+df_alltime['decade'] = (df_alltime['release_year'] // 10) * 10
+decade_counts = df_alltime['decade'].value_counts().sort_index()
+print(decade_counts)
+
+#4.4 ispisati izvodjace pop rock zanra
+pop_rock_artists = df_alltime[df_alltime['primary_genre'].str.contains('Pop Rock', na=False)]
+print(pop_rock_artists['artist'].unique())
+
+#4.5 ispisati sve izvodjace eksplicitnih pesama
+explicit_artists = df_alltime[df_alltime['explicit'] == True]['artist'].unique()
+print(explicit_artists)
+
+#4.6 sortirati pesme po bpm-u (od najsporijih ka najbrzim)
+sorted_bpm_all = df_alltime.sort_values(by='bpm')
+print(sorted_bpm_all[['song_title' , 'bpm']])
+
+#4.7 izdvojiti duete
+duets = df_alltime[df_alltime['artist'].str.contains(' & | ft. | with | x ', case=False, na=False)]
+print(duets[['song_title', 'artist']])
+
+
+
+#koje pesme iz 50 pesama 2025 godine se pojavljuju na listi top 100 pesama svih vremena
+preklapanje = df_songs_25[df_songs_25['song_title'].isin(df_alltime['song_title'])]     
+print(preklapanje[['song_title' , 'artist']])         
