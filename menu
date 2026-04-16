@@ -1,0 +1,23 @@
+def meni():
+    while True:
+        print("\n--- BIOSKOP MENI ---")
+        print("1. Dodaj film")
+        print("2. Obriši film")
+        print("3. Ispiši sve")
+        print("x. Izlaz")
+        
+        izbor = input("Izaberi opciju: ")
+        
+        if izbor == "1":
+            # Ovde pozivaš svoju funkciju sa inputima
+            naziv = input("Unesi naziv: ")
+            # dodaj_film(...) 
+        elif izbor == "2":
+            rb = input("Unesi redni broj za brisanje: ")
+            # obrisi_film(rb)
+        elif izbor == "x":
+            break
+        else:
+            print("Nepostojeća opcija!")
+
+# meni() # Pozivaš ga na dnu fajla
