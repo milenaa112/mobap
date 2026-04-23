@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kolokvijum1</string>
+    <string name="channel_id">kanal_provera</string>
+    <string name="channel_name">Provera boje</string>
+</resources>

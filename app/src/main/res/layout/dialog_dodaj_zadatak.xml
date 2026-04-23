@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- dialog_dodaj_zadatak.xml -->
+<!-- Forma koja se otvara klikom na FAB -->
+<!-- Sadrzi: EditText za naziv, TimePicker za vreme, dva dugmeta -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Dodaj novi zadatak"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <!-- NAZIV ZADATKA - EditText za unos teksta -->
+    <EditText
+        android:id="@+id/etNaziv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Naziv zadatka"
+        android:inputType="text"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Vreme izvrsenja:"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- TIMEPICKER - komponenta sata za izbor vremena -->
+    <!-- getHour() i getMinute() daju izabrane vrednosti -->
+    <TimePicker
+        android:id="@+id/timePicker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:timePickerMode="spinner"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp" />
+
+    <!-- DUGMAD - horizontalno poredana -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- ODUSTANI - zatvara dialog bez cuvanja -->
+        <Button
+            android:id="@+id/btnOdustani"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Odustani"
+            android:layout_marginEnd="8dp"
+            android:backgroundTint="#9E9E9E" />
+
+        <!-- POTVRDI - dodaje zadatak u listu i salje broadcast -->
+        <Button
+            android:id="@+id/btnPotvrdi"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Potvrdi"
+            android:backgroundTint="#2196F3" />
+
+    </LinearLayout>
+
+</LinearLayout>

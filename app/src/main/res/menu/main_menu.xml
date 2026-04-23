@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- main_menu.xml - nalazi se u res/menu/ folderu -->
+<!-- Prikazuje se u Toolbar-u kao stavke menija -->
+<!-- MainActivity.onOptionsItemSelected() reaguje na klikove -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- ZADACI - klikom se prikazuje ZadaciFragment -->
+    <item
+        android:id="@+id/menu_zadaci"
+        android:title="Zadaci"
+        app:showAsAction="ifRoom" />
+
+    <!-- KORISNICI - klikom se prikazuje KorisniciFragment -->
+    <item
+        android:id="@+id/menu_korisnici"
+        android:title="Korisnici"
+        app:showAsAction="ifRoom" />
+
+</menu>
