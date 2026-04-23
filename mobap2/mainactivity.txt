@@ -1,0 +1,31 @@
+public class MainActivity extends AppCompatActivity {
+    Button btnOboji, btnReprodukuj, btnDodaj;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        btnOboji = findViewById(R.id.btnOboji);
+        btnReprodukuj = findViewById(R.id.btnReprodukuj);
+        btnDodaj = findViewById(R.id.btnDodaj);
+
+        // Start boja servisa
+        btnOboji.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ColorService.class);
+            startService(intent);
+        });
+
+        // Start muzike
+        btnReprodukuj.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MusicService.class);
+            startService(intent);
+        });
+
+        // Nova aktivnost
+        btnDodaj.setOnClickListener(v -> {
+            Intent intent = new Intent(this, DodajActivity.class);
+            startActivity(intent);
+        });
+    }
+}

@@ -1,0 +1,36 @@
+public class ColorService extends Service {
+    Handler handler = new Handler();
+    boolean isBlack = true;
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        handler.postDelayed(changeColor, 1000 * 60); // svake minute
+        return START_STICKY;
+    }
+
+    private Runnable changeColor = new Runnable() {
+        @Override
+        public void run() {
+            // menja stanje boje
+            isBlack = !isBlack;
+
+            // šalje notifikaciju
+            sendNotification("Boja je promenjena!");
+
+            handler.postDelayed(this, 1000 * 60);
+        }
+    };
+
+    private void sendNotification(String text) {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "kanal1")
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentTitle("Notifikacija")
+                .setContentText(text)
+                .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+        NotificationManagerCompat.from(this).notify(1, builder.build());
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) { return null; }
+}

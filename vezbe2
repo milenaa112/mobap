@@ -1,0 +1,77 @@
+import plotly.express as px
+import pandas as pd
+
+import plotly.io as pio
+pio.renderers.default = "browser"
+
+df_alltime = pd.read_csv('spotify_alltime_top100_songs.csv')
+
+#1 Prikazati top 5 najslušanijih pesama koristeći tri različita prikaza po izboru (bar, pie chart…)
+
+top_5 = df_alltime.nlargest(5, 'total_streams_billions')
+
+fig1a = px.bar(top_5, x='song_title', y='total_streams_billions', title="Top 5 - Bar Chart")
+fig1a.show()
+
+fig1b = px.pie(top_5, names='song_title', values='total_streams_billions', title="Top 5 - Pie Chart")
+fig1b.show()
+
+fig1c = px.funnel(top_5, x='total_streams_billions', y='song_title', title="Top 5 - Funnel Chart")
+fig1c.show()
+
+
+#2 danceability vs energy (scatter plot)
+fig2 = px.scatter(df_alltime, x='danceability', y='energy',
+                  size='total_streams_billions', color='release_year',
+                  hover_name='song_title', title="Danceability vs Energy"
+)
+fig2.show()
+
+
+#3 distribucija godina (histogram)
+fig3a = px.histogram(df_alltime, x='release_year', nbins=20, title="Distribucija godina (20 bins)")
+fig3a.show()
+
+fig3b = px.histogram(df_alltime, x='release_year', nbins=50, title="Distribucija godina (50 bins)")
+fig3b.show()
+
+
+#4 pie chart koji pokazuje udele vrednosti explicit atributa
+fig4 = px.pie(df_alltime, names='explicit', title="Udeo eksplicitnih pesama")
+fig4.show()
+
+#5  line chart ukupnih strimova po godinama
+streams_per_year = df_alltime.groupby('release_year')['total_streams_billions'].sum().reset_index()
+fig5 = px.line(streams_per_year, x='release_year', y='total_streams_billions', title="Trend strimova kroz godine")
+fig5.show()
+
+#6 box plot raspodelu bpm-a po svakom žanru
+fig6 = px.box(df_alltime, x='primary_genre', y='bpm', title="Raspodela BPM-a po zanru")
+fig6.show()
+
+#7 box plot raspodelu bpm-a za prvih 10 najslušanijih žanrova
+top_10_genres_list = df_alltime['primary_genre'].value_counts().head(10).index
+df_top_genres = df_alltime[df_alltime['primary_genre'].isin(top_10_genres_list)]
+
+fig7 = px.box(df_top_genres, x='primary_genre', y='bpm', title="BPM za top 10 najslusanijih zanrova")
+fig7.show()
+
+#8 scatter plot koji pokazuje zavisnost acousticness i valence atributa. Boja neka pokazuje državu, a veličina tačke broj strimova
+fig8 = px.scatter(df_alltime, x='acousticness', y='valence',
+                  color='artist_country', size='total_streams_billions',
+                  hover_name='song_title', title="Acousticness vs Valence")
+fig8.show()
+
+#9 heatmap za sve podatke koji su prikazani numeričkim vrednostima
+numeric_cols = df_alltime.select_dtypes(include=['float64', 'int64'])
+corr_matrix = numeric_cols.corr()
+
+fig9 = px.imshow(corr_matrix, text_auto=True, title="Heatmap korelacija numerickih atributa")
+fig9.show()
+
+#10 Za tri vrednosti po izboru plotovati 3D scatter
+fig10 = px.scatter_3d(df_alltime, x='energy', y='danceability', z='valence',
+                      color='primary_genre', size='total_streams_billions',
+                      hover_name='song_title', title="3D prikaz:")
+fig10.show()
+

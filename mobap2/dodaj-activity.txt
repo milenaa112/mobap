@@ -1,0 +1,24 @@
+public class DodajActivity extends AppCompatActivity {
+    EditText etIme, etOpis;
+    Button btnSacuvaj;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_dodaj);
+
+        etIme = findViewById(R.id.etIme);
+        etOpis = findViewById(R.id.etOpis);
+        btnSacuvaj = findViewById(R.id.btnSacuvaj);
+
+        btnSacuvaj.setOnClickListener(v -> {
+            String ime = etIme.getText().toString();
+            String opis = etOpis.getText().toString();
+
+            // simulacija POST requesta
+            Log.d("API", "Poslato: " + ime + " - " + opis);
+
+            Toast.makeText(this, "Poslato!", Toast.LENGTH_SHORT).show();
+        });
+    }
+}

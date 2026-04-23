@@ -1,0 +1,162 @@
+import json
+import csv
+
+FILENAME = "filmovi.txt"
+
+# Pomoćna funkcija za učitavanje svih filmova iz fajla u listu rečnika
+def ucitaj_filmove():
+    filmovi = []
+    try:
+        with open(FILENAME, "r", encoding="utf-8") as f:
+            for linija in f:
+                podaci = linija.strip().split("/")
+                if len(podaci) < 9: continue
+                film = {
+                    "rb": podaci[0],
+                    "naziv": podaci[1],
+                    "zanrovi": podaci[2].split("_"),
+                    "trajanje": podaci[3],
+                    "glumci": podaci[4].split("_"),
+                    "godina": int(podaci[5]),
+                    "status": podaci[6],
+                    "ocena": podaci[7],
+                    "jezici": podaci[8].split("_")
+                }
+                filmovi.append(film)
+    except FileNotFoundError:
+        pass
+    return filmovi
+
+# Pomoćna funkcija za čuvanje liste rečnika nazad u .txt fajl
+def sacuvaj_filmove(filmovi):
+    with open(FILENAME, "w", encoding="utf-8") as f:
+        for film in filmovi:
+            zanrovi_str = "_".join(film["zanrovi"])
+            glumci_str = "_".join(film["glumci"])
+            jezici_str = "_".join(film["jezici"])
+            linija = f"{film['rb']}/{film['naziv']}/{zanrovi_str}/{film['trajanje']}/{glumci_str}/{film['godina']}/{film['status']}/{film['ocena']}/{jezici_str}\n"
+            f.write(linija)
+
+# 1. Dodavanje novog filma
+def dodaj_film(rb, naziv, zanrovi, trajanje, glumci, godina, status, ocena, jezici):
+    filmovi = ucitaj_filmove()
+    novi_film = {
+        "rb": rb, "naziv": naziv, "zanrovi": zanrovi, "trajanje": trajanje,
+        "glumci": glumci, "godina": godina, "status": status, "ocena": ocena, "jezici": jezici
+    }
+    filmovi.append(novi_film)
+    sacuvaj_filmove(filmovi)
+
+# 2. Brisanje filma po rednom broju
+def obrisi_film(rb):
+    filmovi = ucitaj_filmove()
+    filmovi = [f for f in filmovi if f["rb"] != str(rb)]
+    sacuvaj_filmove(filmovi)
+
+# 3. Ispis svih filmova po nazivu i godini
+def ispis_svih():
+    for f in ucitaj_filmove():
+        print(f"Film: {f['naziv']} ({f['godina']})")
+
+# 4. Pronalaženje filmova u opsegu godina
+def pronadji_po_godinama(od_god, do_god):
+    for f in ucitaj_filmove():
+        if od_god <= f["godina"] <= do_god:
+            print(f"{f['naziv']} - {f['godina']}")
+
+# 5. Ispis podataka filma preko imena i godine
+def podaci_o_filmu(ime, god):
+    for f in ucitaj_filmove():
+        if f["naziv"].lower() == ime.lower() and f["godina"] == god:
+            print(f)
+
+# 6. Prosečno trajanje svih filmova
+def prosek_trajanja_svih():
+    filmovi = ucitaj_filmove()
+    ukupno_minuta = 0
+    for f in filmovi:
+        h, m = map(int, f["trajanje"].split(":"))
+        ukupno_minuta += h * 60 + m
+    print(f"Prosek: {ukupno_minuta / len(filmovi) if filmovi else 0} min")
+
+# 7. Prosek trajanja po žanru
+def prosek_po_zanru(trazeni_zanr):
+    filmovi = ucitaj_filmove()
+    minuti, brojac = 0, 0
+    for f in filmovi:
+        if trazeni_zanr in f["zanrovi"]:
+            h, m = map(int, f["trajanje"].split(":"))
+            minuti += h * 60 + m
+            brojac += 1
+    print(f"Prosek za {trazeni_zanr}: {minuti/brojac if brojac else 0} min")
+
+# 8. Prikaz filmova u opsegu trajanja (npr "01:30", "02:00")
+def opseg_trajanja(min_t, max_t):
+    def u_minute(t):
+        h, m = map(int, t.split(":"))
+        return h * 60 + m
+    
+    for f in ucitaj_filmove():
+        if u_minute(min_t) <= u_minute(f["trajanje"]) <= u_minute(max_t):
+            print(f"{f['naziv']} ({f['trajanje']})")
+
+# 9. Ispis filmova gde glumi određeni glumac
+def filmovi_glumca(glumac):
+    for f in ucitaj_filmove():
+        if glumac in f["glumci"]:
+            print(f"{f['naziv']}")
+
+# 10. Sortirani po žanru
+def sortirani_po_zanru():
+    filmovi = ucitaj_filmove()
+    # Sortiramo po prvom žanru u listi
+    sortirani = sorted(filmovi, key=lambda x: x["zanrovi"][0])
+    for f in sortirani:
+        print(f"{f['zanrovi']} - {f['naziv']}")
+
+# 11. Promena statusa
+def promeni_status(rb, novi_status):
+    filmovi = ucitaj_filmove()
+    for f in filmovi:
+        if f["rb"] == str(rb):
+            f["status"] = novi_status
+    sacuvaj_filmove(filmovi)
+
+# 12. Unos ocene
+def unesi_ocenu(rb, ocena):
+    filmovi = ucitaj_filmove()
+    for f in filmovi:
+        if f["rb"] == str(rb):
+            if f["status"] in ["ODGLEDANO", "ODUSTAJANJE"]:
+                f["ocena"] = str(ocena)
+            else:
+                print("Nije moguće oceniti film koji nije odgledan ili se od njega odustalo.")
+    sacuvaj_filmove(filmovi)
+
+# 13. Ispis filmova sa prosleđenim statusom
+def ispis_status(trazeni_status):
+    for f in ucitaj_filmove():
+        if f["status"] == trazeni_status:
+            print(f"{f['naziv']}")
+
+# 14. Ispis po broju jezika
+def ispis_po_broju_jezika():
+    filmovi = sorted(ucitaj_filmove(), key=lambda x: len(x["jezici"]), reverse=True)
+    for f in filmovi:
+        print(f"{f['naziv']} - Broj jezika: {len(f['jezici'])}")
+
+# 15. Zapis u JSON formatu
+def sacuvaj_u_json():
+    filmovi = ucitaj_filmove()
+    with open("filmovi.json", "w", encoding="utf-8") as f:
+        json.dump(filmovi, f, indent=4)
+
+# 16. Zapis u CSV formatu
+def sacuvaj_u_csv():
+    filmovi = ucitaj_filmove()
+    if not filmovi: return
+    keys = filmovi[0].keys()
+    with open("filmovi.csv", "w", newline="", encoding="utf-8") as f:
+        dict_writer = csv.DictWriter(f, fieldnames=keys)
+        dict_writer.writeheader()
+        dict_writer.writerows(filmovi)

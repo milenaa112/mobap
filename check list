@@ -1,0 +1,118 @@
+==========================================================================
+                MASTER PODSETNIK ZA KOLOKVIJUM (PYTHON)
+==========================================================================
+
+--------------------------------------------------------------------------
+1. PANDAS - ANALITIKA I OBRADA (spotify_...csv)
+--------------------------------------------------------------------------
+
+# Učitavanje:
+df = pd.read_csv('fajl.csv')
+
+# Top N rezultata:
+top_5 = df.nlargest(5, 'kolona')
+# Ili preko sortiranja:
+top_5 = df.sort_values(by='kolona', ascending=False).head(5)
+
+# Grupisanje (Prosek/Suma po kategoriji):
+prosek = df.groupby('kategorija')['vrednost'].mean()
+suma = df.groupby('kategorija')['vrednost'].sum()
+
+# Brojanje ponavljanja:
+broj_po_drzavi = df['country'].value_counts()
+
+# Filtriranje sa jednim uslovom:
+filter1 = df[df['explicit'] == True]
+
+# Filtriranje sa više uslova (PAZI NA ZAGRADE):
+filter2 = df[(df['streams'] > 1) & (df['country'] == 'USA')]
+
+# Rad sa tekstom (da li sadrži nešto):
+pop_pesme = df[df['primary_genre'].str.contains('Pop', na=False)]
+
+# Provera praznih ćelija:
+prazni = df.isnull().sum()
+
+# Unikatne vrednosti:
+svi_zanrovi = df['primary_genre'].unique()
+
+--------------------------------------------------------------------------
+2. PLOTLY - VIZUELIZACIJA (px)
+--------------------------------------------------------------------------
+
+import plotly.express as px
+import plotly.io as pio
+pio.renderers.default = "browser"  # FIX ako se grafikon ne vidi
+
+# BAR: Rangiranje
+px.bar(df, x='naziv', y='vrednost', title="Naslov")
+
+# PIE: Udeli u celini
+px.pie(df, names='kategorija', values='vrednost')
+
+# SCATTER: Odnos dve numeričke vrednosti
+px.scatter(df, x='danceability', y='energy', size='streams', color='year')
+
+# HISTOGRAM: Distribucija (npr. godine)
+px.histogram(df, x='release_year', nbins=50)
+
+# LINE: Trendovi kroz vreme
+px.line(df_grupisano, x='godina', y='suma_strimova')
+
+# BOX: Raspodela vrednosti po kategorijama (BPM po žanru)
+px.box(df, x='genre', y='bpm')
+
+# HEATMAP: Korelacija (uvek ide uz .corr())
+numeric_df = df.select_dtypes(include=['float64', 'int64'])
+px.imshow(numeric_df.corr(), text_auto=True)
+
+# 3D SCATTER:
+px.scatter_3d(df, x='x_kolona', y='y_kolona', z='z_kolona', color='kategorija')
+
+--------------------------------------------------------------------------
+3. FUNKCIJE I FAJLOVI (filmovi.txt)
+--------------------------------------------------------------------------
+
+# ČITANJE IZ .TXT (Splitovanje):
+def ucitaj():
+    lista = []
+    with open("filmovi.txt", "r", encoding="utf-8") as f:
+        for linija in f:
+            podaci = linija.strip().split("/")
+            d = {"rb": podaci[0], "zanrovi": podaci[2].split("_")} # Primer
+            lista.append(d)
+    return lista
+
+# PISANJE U .TXT (Joinovanje):
+def sacuvaj(lista):
+    with open("filmovi.txt", "w", encoding="utf-8") as f:
+        for d in lista:
+            zanrovi_str = "_".join(d['zanrovi'])
+            linija = f"{d['rb']}/{d['naziv']}/{zanrovi_str}\n"
+            f.write(linija)
+
+# BRISANJE:
+lista = [f for f in lista if f['rb'] != '5']
+
+# PROSEK TRAJANJA (hh:mm -> minuti):
+suma = 0
+for f in lista:
+    h, m = map(int, f['trajanje'].split(':'))
+    suma += (h * 60 + m)
+
+# VALIDACIJA STATUSA:
+if f['status'] in ['ODGLEDANO', 'ODUSTAJANJE']:
+    # uradi nešto
+
+# SORTIRANJE LISTE REČNIKA:
+sortirano = sorted(lista, key=lambda x: x['godina'])
+
+--------------------------------------------------------------------------
+4. NAJČEŠĆE GREŠKE (DEBUGGING)
+--------------------------------------------------------------------------
+- Zaboravljen ZAREZ između parametara u px.scatter ili df.groupby.
+- KeyError: Naziv kolone nije TAČAN (pazi na velika/mala slova).
+- SyntaxError: Fali zagrada na kraju px grafikona ili if uslova.
+- Indentacija: Proveri da li su razmaci u petljama/funkcijama ravni.
+- Tip podataka: Godina/Strimovi moraju biti brojevi, ne stringovi.
+==========================================================================
