@@ -1,780 +1,755 @@
-# ANDROID KOLOKVIJUM 2 – KOMPLETAN VODIČ
+KORAK 2: Kreiranje klase Subject (pogledaj zadatak 7 (ako je TimePicker stavi kao string), (sve sto je Checkbox je Boolean))
+Sa leve strane ekrana pronađi folder java, pa unutar njega otvori prvi folder (onaj koji u zagradi nema test ili androidTest, npr. com.example.kolokvijum1).Klikni desnim klikom na taj folder.Izaberi New $\rightarrow$ Java Class.U prozorčiću koji se pojavi, upiši naziv: Subject (sa velikim slovom S) i pritisni Enter.Sada ti je otvorena prazna klasa. Prebriši sve unutra i prekopiraj ovaj čist, jednostavan kod:Javapackage com.example.kolokvijum1; // Ovde će stajati tvoj stvarni naziv paketa, ne diraj prvu liniju ako već postoji
 
----
+public class Subject {
+    private String naziv;
+    private String datum;
+    private boolean isActive;
 
-## REDOSLED RADA (ne menjaj redosled!)
+    // Konstruktor - služi da napravimo novi predmet sa ovim podacima
+    public Subject(String naziv, String datum, boolean isActive) {
+        this.naziv = naziv;
+        this.datum = datum;
+        this.isActive = isActive;
+    }
 
-```
-1. build.gradle (app)       → dodaj biblioteke → Sync Now
-2. AndroidManifest.xml      → dodaj permisije + FileProvider
-3. res/xml/file_paths.xml   → napravi novi fajl
-4. activity_main.xml        → postavi UI
-5. PostEntity.kt            → napravi paket "database", dodaj fajl
-6. AppDatabase.kt           → u paketu "database"
-7. ApiService.kt            → napravi paket "network", dodaj fajl
-8. MainActivity.kt          → poslednje, kad sve ostalo postoji
-```
-
----
-
-## KORAK 1 — build.gradle (app)
-
-Otvori `Gradle Scripts → build.gradle (Module: app)` i zameni ceo sadržaj:
-
-```groovy
-plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-    id 'kotlin-kapt'
+    // Geteri - služe da kasnije izvučemo ove podatke za prikaz u listi
+    public String getNaziv() { return naziv; }
+    public String getDatum() { return datum; }
+    public boolean isActive() { return isActive; }
 }
 
-android {
-    namespace 'com.example.kolokvijum2'
-    compileSdk 34
 
-    defaultConfig {
-        applicationId "com.example.kolokvijum2"
-        minSdk 24
-        targetSdk 34
-        versionCode 1
-        versionName "1.0"
-    }
 
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = '1.8'
-    }
-}
+KORAK 3:
+U tekstu za Kolokvijum 1a (Zadatak 1) piše:"Unutar MainActivity postaviti Toolbar i LinearLayout."   Sada radimo samo XML dizajn tog glavnog ekrana.Šta tačno radiš:Sa leve strane ekrana pronađi folder res $\rightarrow$ otvori folder layout $\rightarrow$ dvoklikni na fajl activity_main.xml.Kada ti se otvori, prebaci se na Code prikaz (gore desno u uglu imaš tri male ikonice: Code, Split, Design. Klikni na Code).Selektuj (obriši) apsolutno sve što se trenutno nalazi u tom fajlu i prekopiraj ovaj čist kod:XML
 
-dependencies {
-    implementation 'androidx.core:core-ktx:1.12.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.11.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-
-    // Lifecycle – potrebno za lifecycleScope
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
-
-    // Room – baza podataka
-    def room_version = "2.6.1"
-    implementation "androidx.room:room-runtime:$room_version"
-    implementation "androidx.room:room-ktx:$room_version"
-    kapt "androidx.room:room-compiler:$room_version"
-
-    // Retrofit – HTTP zahtevi
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-}
-```
-
-**Nakon što zalepite → kliknite "Sync Now" (žuta traka gore) i sačekajte da završi.**
-
----
-
-## KORAK 2 — AndroidManifest.xml
-
-Otvori `app/src/main/AndroidManifest.xml` i zameni ceo sadržaj:
-
-```xml
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.kolokvijum2">
-
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
-
-    <application
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.Kolokvijum2"
-        android:usesCleartextTraffic="true">
-
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.provider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
-        </provider>
-
-    </application>
-</manifest>
-```
-
----
-
-## KORAK 3 — res/xml/file_paths.xml
-
-Ovaj fajl ne postoji automatski. Napravi ga:
-- Desni klik na `res` → New → Android Resource File
-- File name: `file_paths`
-- Resource type: `XML`
-- Klikni OK
-
-Zalepiti sadržaj:
-
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <external-files-path
-        name="my_images"
-        path="Pictures/" />
-</paths>
-```
-
----
-
-## KORAK 4 — activity_main.xml
-
-Otvori `res/layout/activity_main.xml`, prebaci na **Code** pogled i zameni ceo sadržaj:
-
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:orientation="vertical">
 
-    <LinearLayout
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary" />
+
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</LinearLayout>
+
+
+
+2. Kolokvijum 1b (CoordinatorLayout - PLAVA pozadina)U tekstu za 1b piše: "Unutar MainActivity postaviti Toolbar i CoordinatorLayout sa plavom pozadinom." 
+Da nam i sam fragment ne bi poplaveo, unutar FrameLayout-a stavljamo belu pozadinu (#FFFFFF).  XML
+
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0000FF"> <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary" />
+
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:background="#FFFFFF" /> </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+
+3. Kolokvijum 1c (RelativeLayout - ŽUTA pozadina)U tekstu za 1c piše: "Unutar MainActivity postaviti Toolbar i RelativeLayout sa žutom pozadinom." 
+Pošto RelativeLayout ređa stvari jednu preko druge, ovde koristimo android:layout_below da bismo FrameLayout gurnuli ispod Toolbara.  XML
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFF00"> <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary" />
+
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/toolbar"
+        android:background="#FFFFFF" /> </RelativeLayout>
+
+
+
+
+
+KORAK 4: 
+Povezivanje Toolbar-a u Java kodu (MainActivity.java)
+Sada otvori fajl MainActivity.java. Unutar onCreate metode moramo da povežemo ovaj Toolbar da bi aplikacija znala da ga koristi kao svoju glavnu traku.
+
+Prebriši sve unutra i stavi ovaj kod:
+
+
+package com.example.kolokvijum1;
+
+import android.os.Bundle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar; // Pazi da uvezeš androidx verziju!
+
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main); // Povezuje Java sa onim XML-om
+
+        // 1. Pronalazimo Toolbar preko ID-ja koji smo dali u XML-u
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        
+        // 2. Kažemo aktivnosti: "Ovaj Toolbar je sada glavna akciona traka (ActionBar)"
+        setSupportActionBar(toolbar);
+    }
+}
+Ove dve linije za Toolbar su takođe zajedničke za sve grupe i uvek se pišu isto.
+
+
+
+
+
+
+KORAK 5: 
+Kreiranje gornjeg menija.
+Gde to piše u tekstu kolokvijuma?
+Pogledaj Zadatak 4 na svom papiru:"4. Dodati meni komponentu sa stavkom Subject. (0.5)"Šta tačno radiš na računaru:Meni se uvek pravi iz dva dela: prvo nacrtamo kako izgleda (XML), a onda ga prikažemo u Java kodu.
+
+1. Deo: Pravljenje XML izgleda za meniPošto Android na početku nema folder za menije, moramo ga napraviti:Sa leve strane ekrana desnim klikom klikni na folder res.Izaberi New $\rightarrow$ Android Resource Directory.U prozoru koji iskoči, tamo gde piše Resource type, klikni i izaberi menu. Klikni OK. (Sada si dobila novi folder pod nazivom menu unutar res foldera).Klikni desnim klikom na taj novi folder menu $\rightarrow$ izaberi New $\rightarrow$ Menu Resource File.Nazovi ga main_menu (sve malim slovima) i klikni Enter.Otvori taj fajl, prebaci se na Code prikaz, obriši sve i prekopiraj ovo:XML
+
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    
+    <item
+        android:id="@+id/action_subject"
+        android:title="Subject"
+        app:showAsAction="ifRoom" />
+        
+</menu>
+Napomena za sutra: Ako ti u nekoj drugoj grupi (npr. 1b ili 1c) piše stavka "Person" ili "Task" , ti ovde samo promeniš android:title="Person" i promeniš ID u android:id="@+id/action_person". Sve ostalo je potpuno isto!
+
+
+
+2. Deo: Prikazivanje menija u Java kodu
+Sada moramo da kažemo našoj aktivnosti da "napumpa" (prikaže) ovaj meni na ekranu.
+
+Otvori ponovo MainActivity.java i ispod onCreate metode (ali pre poslednje zatvorene vitičaste zagrade }) dodaj ovu metodu:
+
+@Override
+public boolean onCreateOptionsMenu(Menu menu) {
+    // Ova linija uzima naš main_menu.xml i prikazuje ga u Toolbaru
+    getMenuInflater().inflate(R.menu.main_menu, menu);
+    return true;
+}
+(Kada ovo ukucaš, reč Menu će pocrveneti. Samo klikni na nju i pritisni Alt + Enter da je Android Studio sam uveze na vrh fajla).
+
+
+
+
+
+
+
+
+KORAK 6: Kreiranje fragmenta i njegovo otvaranje na klik menija
+
+Gde to piše u tekstu kolokvijuma?
+Pogledaj Zadatak 2 i Zadatak 5 na svom papiru:
+" 2. Kreirati fragment: SubjectFragment. (1)"
+" 5. Klikom na Subject, unutar MainActivity se prikazuje SubjectFragment. (0.5)"
+
+
+
+1. Deo: Pravljenje XML izgleda za fragment
+Sa leve strane, u folderu res/layout, klikni desnim klikom na New pa Layout Resource File.Nazovi ga fragment_subject (sve malim slovima) i klikni Enter.Prebaci se na Code prikaz, obriši sve i stavi ovaj jednostavan kod:XML
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"> <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/btn_dodati" /> <Button
+        android:id="@+id/btn_dodati"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:layout_alignParentBottom="true"
+        android:text="Dodati"
+        android:backgroundTint="#00FF00" /> </RelativeLayout>
+(Ovim smo već pripremili i teren za Zadatak 3, jer smo odmah stavili RecyclerView i zeleno dugme "Dodati" na dno ekrana ).
 
-        <TextView
-            android:id="@+id/tvLocation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:padding="8dp"
-            android:text="Učitavanje lokacije..."
-            android:textSize="16sp" />
 
-        <ImageButton
-            android:id="@+id/ibCamera"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:contentDescription="Otvori kameru"
-            android:src="@android:drawable/ic_menu_camera" />
 
-        <ImageView
-            android:id="@+id/ivPhoto"
-            android:layout_width="match_parent"
-            android:layout_height="250dp"
-            android:layout_marginBottom="16dp"
-            android:contentDescription="Fotografija"
-            android:scaleType="centerCrop"
-            android:background="@android:color/darker_gray" />
+2. Deo: Pravljenje Java klase za fragmentDesnim klikom klikni na tvoj glavni Java paket (tamo gde ti stoje MainActivity i Subject) $\rightarrow$ New $\rightarrow$ Java Class.Nazovi je tačno kako piše na papiru: SubjectFragment.  Prebriši sve i stavi ovaj osnovni kod koji samo "podiže" onaj XML koji smo malopre napravili:
 
-        <Switch
-            android:id="@+id/switchPosts"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="Postovi" />
+package com.example.kolokvijum1;
 
-        <Button
-            android:id="@+id/btnDelete"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="X:0.0 Y:0.0 Z:0.0" />
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.class;
+import androidx.fragment.app.Fragment;
 
-    </LinearLayout>
-</ScrollView>
-```
+public class SubjectFragment extends Fragment {
 
----
-
-## KORAK 5 — database/PostEntity.kt
-
-Napravi paket: desni klik na `com.example.kolokvijum2` → New → Package → ukucaj `database`
-
-Unutar tog paketa: desni klik → New → Kotlin Class/File → naziv `PostEntity`
-
-Zalepiti kompletan sadržaj:
-
-```kotlin
-package com.example.kolokvijum2.database
-
-import androidx.room.*
-
-@Entity(tableName = "posts")
-data class PostEntity(
-    @PrimaryKey val id: Int,
-    val title: String,
-    val body: String,
-    val userId: Int
-)
-
-@Dao
-interface PostDao {
-
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insertAll(posts: List<PostEntity>)
-
-    @Query("SELECT COUNT(*) FROM posts")
-    fun getCount(): Int
-
-    @Query("SELECT * FROM posts ORDER BY rowid ASC LIMIT 1")
-    fun getFirstPost(): PostEntity?
-
-    @Delete
-    fun delete(post: PostEntity)
-}
-```
-
-**Napomena:** `ORDER BY rowid ASC` znači prvi UPISANI post u tabelu, ne post sa najmanjim ID-jem.
-
----
-
-## KORAK 6 — database/AppDatabase.kt
-
-U paketu `database`: desni klik → New → Kotlin Class/File → naziv `AppDatabase`
-
-Zalepiti kompletan sadržaj:
-
-```kotlin
-package com.example.kolokvijum2.database
-
-import android.content.Context
-import androidx.room.Database
-import androidx.room.Room
-import androidx.room.RoomDatabase
-
-@Database(entities = [PostEntity::class], version = 1, exportSchema = false)
-abstract class AppDatabase : RoomDatabase() {
-
-    abstract fun postDao(): PostDao
-
-    companion object {
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
-
-        fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "kolokvijum2_db"
-                ).build()
-                INSTANCE = instance
-                instance
-            }
-        }
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Ova linija povezuje klasu sa XML izgledom fragment_subject
+        return inflater.inflate(R.layout.fragment_subject, container, false);
     }
 }
-```
 
----
 
-## KORAK 7 — network/ApiService.kt
 
-Napravi paket: desni klik na `com.example.kolokvijum2` → New → Package → ukucaj `network`
+3. Deo: Povezivanje klika u MainActivity da otvori ovaj fragment
+Sada se vraćamo u MainActivity.java da završimo Zadatak 5 (klikom na stavku menija otvara se fragment).  Pronađi metodu onOptionsItemSelected koju smo pisali u prošlom koraku i dopuni je da izgleda ovako:
 
-Unutar tog paketa: desni klik → New → Kotlin Class/File → naziv `ApiService`
-
-Zalepiti kompletan sadržaj:
-
-```kotlin
-package com.example.kolokvijum2.network
-
-import com.example.kolokvijum2.database.PostEntity
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
-
-data class PostsResponse(
-    val posts: List<PostEntity>
-)
-
-interface ApiService {
-    @GET("posts")
-    suspend fun getPosts(): PostsResponse
+@Override
+public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == R.id.action_subject) {
+        
+        // KOD ZA OTVARANJE FRAGMENTA (Ovo prepisuješ na svakom kolokvijumu):
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, new SubjectFragment()) // Ubaci fragment u našu praznu kutiju
+                .commit();
+                
+        return true;
+    }
+    return super.onOptionsItemSelected(item);
 }
 
-object RetrofitClient {
-    private const val BASE_URL = "https://app.beeceptor.com/mock-server/dummy-json/"
 
-    val api: ApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
+dodaj ovo ako nemas u SubjectFragment.java
+import androidx.fragment.app.Fragment;
+
+
+
+
+
+
+
+KORAK 7: Otvaranje forme za unos podataka (Dijalog)
+
+
+Gde to piše u tekstu kolokvijuma?
+Pogledaj Zadatak 6 i Zadatak 7 na svom papiru:"6. Klikom na dugme otvara se forma za dodavanje novog predmeta. (0.5)""7. Forma ima: naziv predmeta, datum izvršenja (DatePicker), Checkbox sa labelom 'Active', dugme za potvrdu i dugme za odustajanje (1). Klikom na dugme za odustajanje zatvoriti formu (0.5)." 
+Šta tačno radiš na računaru:Prvo moramo da nacrtamo kako ta forma (dijalog) izgleda. Pravimo novi mali XML fajl.
+
+1. Deo: Pravljenje XML izgleda za formuDesni klik na folder res/layout $\rightarrow$ New $\rightarrow$ Layout Resource File.Nazovi ga dialog_add_subject (sve malim slovima) i klikni Enter.Prebaci se na Code prikaz, obriši sve i prekopiraj ovaj kod u kom se nalaze sva polja koja profesor traži:  XML
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/et_naziv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Naziv predmeta" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Datum izvršenja:"
+        android:layout_marginTop="10dp"/>
+
+    <DatePicker
+        android:id="@+id/datePicker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:datePickerMode="spinner"
+        android:calendarViewShown="false" />
+
+    <CheckBox
+        android:id="@+id/cb_active"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Active"
+        android:layout_marginTop="10dp" />
+
+</LinearLayout>
+(Zašto spinner mod na DatePicker-u? Ako ostaviš običan DatePicker, on će progutati ceo ekran i nećemo videti ništa drugo. Ovako izgleda kao mali elegantni točkić).
+
+
+2. Deo: Otvaranje ovog dijaloga na klik zelenog dugmetaSada idemo u SubjectFragment.java da nateramo zeleno dugme da otvori ovu formu kada se na njega klikne.  Izmeni tvoj SubjectFragment.java tako da ubacimo onViewCreated metodu u kojoj ćemo pratiti klik na dugme:
+
+
+package com.example.kolokvijum1;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.CheckBox;
+import android.widget.DatePicker;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog; // Pazi na uvoz za AlertDialog!
+import androidx.fragment.app.Fragment;
+
+public class SubjectFragment extends Fragment {
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_subject, container, false);
+    }
+
+    // Ova metoda se pokreće čim se fragment prikaže na ekranu
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // 1. Pronalazimo zeleno dugme "Dodati" iz fragment_subject.xml
+        Button btnDodati = view.findViewById(R.id.btn_dodati);
+
+        // 2. Osluškujemo klik na to dugme
+        btnDodati.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Pozivamo našu metodu koja će prikazati dijalog formu
+                prikaziDijalogFormu();
+            }
+        });
+    }
+
+    // Metoda za kreiranje i prikazivanje AlertDialog-a (Forme)
+    private void prikaziDijalogFormu() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Dodaj novi predmet");
+
+        // "Napumpavamo" izgled naše forme u dijalog
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_subject, null);
+        builder.setView(dialogView);
+
+        // Pronalazimo komponente sa forme (trebaće nam u sledećem koraku)
+        EditText etNaziv = dialogView.findViewById(R.id.et_naziv);
+        DatePicker datePicker = dialogView.findViewById(R.id.datePicker);
+        CheckBox cbActive = dialogView.findViewById(R.id.cb_active);
+
+        // Dugme za POTVRDU na dijalogu (Zadatak 7)
+        builder.setPositiveButton("Potvrdi", (dialog, which) -> {
+            // Ovde ćemo u sledećem koraku pokupiti podatke i dodati ih u listu!
+        });
+
+        // Dugme za ODUSTAJANJE na dijalogu (Zadatak 7 - donosi 0.5 bodova)
+        builder.setNegativeButton("Odustani", (dialog, which) -> {
+            dialog.dismiss(); // Klikom na odustajanje zatvori formu (Zadatak 7)
+        });
+
+        // Prikaži dijalog na ekranu
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 }
-```
 
----
 
-## KORAK 8 — MainActivity.kt
 
-Otvori postojeći `MainActivity.kt` i zameni CELO sadržaj:
 
-```kotlin
-package com.example.kolokvijum2
 
-import android.Manifest
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
-import android.content.pm.PackageManager
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
-import android.location.LocationListener
-import android.location.LocationManager
-import android.net.Uri
-import android.os.Build
-import android.os.Bundle
-import android.os.Environment
-import android.provider.ContactsContract
-import android.provider.MediaStore
-import android.widget.*
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import androidx.lifecycle.lifecycleScope
-import com.example.kolokvijum2.database.AppDatabase
-import com.example.kolokvijum2.network.RetrofitClient
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 
-class MainActivity : AppCompatActivity(), SensorEventListener {
+KORAK 8: 
+Pravljenje izgleda za jedan red u listi (item_subject.xml)
+Gde to piše u tekstu?
+U Zadatku 3 piše: "SubjectFragment sadrži RecyclerView i služi za prikaz predmeta". Pre nego što u Javi povežemo listu, moramo da napravimo XML kako izgleda samo jedan red (jedna stavka) u toj listi.
+Šta radiš na računaru:Desni klik na folder res/layout $\rightarrow$ New $\rightarrow$ Layout Resource File.Nazovi ga item_subject (sve malim slovima) i klikni Enter.Prebaci se na Code prikaz, obriši sve i stavi ovaj jednostavan kod koji prikazuje naziv predmeta i datum (jedan ispod drugog):XML
 
-    // ── UI elementi ──────────────────────────────────────────────────────────
-    private lateinit var tvLocation: TextView
-    private lateinit var ibCamera: ImageButton
-    private lateinit var ivPhoto: ImageView
-    private lateinit var switchPosts: Switch
-    private lateinit var btnDelete: Button
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp">
 
-    // ── Senzori ──────────────────────────────────────────────────────────────
-    private lateinit var sensorManager: SensorManager
-    private var gyroscope: Sensor? = null
-    private var accelerometer: Sensor? = null
+    <TextView
+        android:id="@+id/tv_item_naziv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#000000" />
 
-    private var gyroX = 0f
-    private var gyroY = 0f
-    private var gyroZ = 0f
+    <TextView
+        android:id="@+id/tv_item_datum"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="#555555"
+        android:layout_marginTop="4dp" />
 
-    // ── Kamera ───────────────────────────────────────────────────────────────
-    private var photoUri: Uri? = null
+</LinearLayout>
 
-    // ── Baza ─────────────────────────────────────────────────────────────────
-    private lateinit var db: AppDatabase
 
-    // ── Konstante ────────────────────────────────────────────────────────────
-    private val PREFS_NAME = "MyPrefs"
-    private val PREFS_TEKST = "tekst"
-    private val CHANNEL_ID = "posts_channel"
-    private val NOTIF_ID = 1
 
-    // ── Launcher za kameru ───────────────────────────────────────────────────
-    // Poziva se nakon što korisnik slikanje fotografije
-    private val cameraLauncher =
-        registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-            if (success && photoUri != null) {
-                // Prikaži sliku u ImageView
-                ivPhoto.setImageURI(photoUri)
-                // Prikaži žiroskop vrednosti u Toast
-                Toast.makeText(
-                    this,
-                    "Žiroskop → X: %.2f  Y: %.2f  Z: %.2f".format(gyroX, gyroY, gyroZ),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
 
-    // ── Launcher za permisije ────────────────────────────────────────────────
-    // Poziva se nakon što korisnik prihvati ili odbije dozvole
-    private val permissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
-            if (results[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
-                fetchLocation()
-            }
-        }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        // 1. Povezi UI elemente sa promenljivima
-        bindViews()
+KORAK 9: 
+Pravljenje SubjectAdapter klase (Srce liste)
+Ovo je onaj šablon koji prepisuješ na svakom kolokvijumu, samo menjaš ime modela (Subject, Person ili Task).
+Šta radiš na računaru:Desni klik na tvoj glavni Java paket $\rightarrow$ New $\rightarrow$ Java Class.Nazovi je SubjectAdapter i klikni Enter.Prebriši sve unutra i prekopiraj ovaj šablon:Java
 
-        // 2. Inicijalizuj senzore
-        setupSensors()
+package com.example.kolokvijum1;
 
-        // 3. Napravi notifikacioni kanal (jednom, pri pokretanju)
-        setupNotificationChannel()
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+import java.util.ArrayList;
 
-        // 4. Inicijalizuj bazu
-        db = AppDatabase.getDatabase(this)
+public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.SubjectViewHolder> {
 
-        // 5. Zatraži permisije i učitaj lokaciju
-        requestPermissionsIfNeeded()
+    private ArrayList<Subject> listaPredmeta;
 
-        // 6. Postavi klikove i listenere
-        setupCamera()
-        setupSwitch()
-        setupDeleteButton()
+    // Konstruktor koji prima listu sa ekranu
+    public SubjectAdapter(ArrayList<Subject> listaPredmeta) {
+        this.listaPredmeta = listaPredmeta;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Registruj senzore kad se ekran pojavi
-    override fun onResume() {
-        super.onResume()
-        gyroscope?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI)
-        }
-        accelerometer?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI)
-        }
+    @NonNull
+    @Override
+    public SubjectViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Ovde povezujemo naš item_subject.xml layout
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_subject, parent, false);
+        return new SubjectViewHolder(view);
     }
 
-    // Deregistruj senzore kad napustiš ekran (štedi bateriju)
-    override fun onPause() {
-        super.onPause()
-        sensorManager.unregisterListener(this)
+    @Override
+    public void onBindViewHolder(@NonNull SubjectViewHolder holder, int position) {
+        // Uzimamo trenutni predmet iz liste i lepimo njegove podatke na TextView-ove
+        Subject trenutni = listaPredmeta.get(position);
+        holder.tvNaziv.setText(trenutni.getNaziv());
+        holder.tvDatum.setText(trenutni.getDatum());
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    private fun bindViews() {
-        tvLocation  = findViewById(R.id.tvLocation)
-        ibCamera    = findViewById(R.id.ibCamera)
-        ivPhoto     = findViewById(R.id.ivPhoto)
-        switchPosts = findViewById(R.id.switchPosts)
-        btnDelete   = findViewById(R.id.btnDelete)
+    @Override
+    public int getItemCount() {
+        return listaPredmeta.size(); // Kaže listi koliko stavki ima ukupno
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    private fun setupSensors() {
-        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-        gyroscope     = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-    }
+    // Klasa koja drži komponente iz item_subject.xml dizajna
+    public static class SubjectViewHolder extends RecyclerView.ViewHolder {
+        TextView tvNaziv, tvDatum;
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Ova metoda se poziva automatski svaki put kad senzor dobije novo očitavanje
-    override fun onSensorChanged(event: SensorEvent) {
-        when (event.sensor.type) {
-            Sensor.TYPE_GYROSCOPE -> {
-                gyroX = event.values[0]
-                gyroY = event.values[1]
-                gyroZ = event.values[2]
-            }
-            Sensor.TYPE_ACCELEROMETER -> {
-                // Zadatak 8: tekst dugmeta = akcelerometar u realnom vremenu
-                btnDelete.text = "X:%.1f Y:%.1f Z:%.1f".format(
-                    event.values[0], event.values[1], event.values[2]
-                )
-            }
-        }
-    }
-
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        // Ne treba ništa ovde
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    private fun requestPermissionsIfNeeded() {
-        val needed = mutableListOf<String>()
-
-        if (!hasPermission(Manifest.permission.ACCESS_FINE_LOCATION))
-            needed += Manifest.permission.ACCESS_FINE_LOCATION
-
-        if (!hasPermission(Manifest.permission.CAMERA))
-            needed += Manifest.permission.CAMERA
-
-        if (!hasPermission(Manifest.permission.READ_CONTACTS))
-            needed += Manifest.permission.READ_CONTACTS
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            !hasPermission(Manifest.permission.POST_NOTIFICATIONS))
-            needed += Manifest.permission.POST_NOTIFICATIONS
-
-        if (needed.isNotEmpty()) {
-            permissionLauncher.launch(needed.toTypedArray())
-        } else {
-            fetchLocation()
-        }
-    }
-
-    private fun hasPermission(permission: String): Boolean {
-        return ContextCompat.checkSelfPermission(this, permission) ==
-                PackageManager.PERMISSION_GRANTED
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Zadatak 3: Lokacija u TextView
-    private fun fetchLocation() {
-        if (!hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) return
-
-        val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-
-        try {
-            var location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-            if (location == null) {
-                location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-            }
-
-            if (location != null) {
-                tvLocation.text = "Lat: ${location.latitude}\nLon: ${location.longitude}"
-            } else {
-                // Ako nema keširane lokacije, zatraži novu
-                locationManager.requestSingleUpdate(
-                    LocationManager.NETWORK_PROVIDER,
-                    object : LocationListener {
-                        override fun onLocationChanged(loc: android.location.Location) {
-                            tvLocation.text = "Lat: ${loc.latitude}\nLon: ${loc.longitude}"
-                        }
-                    },
-                    mainLooper
-                )
-            }
-        } catch (e: SecurityException) {
-            tvLocation.text = "Lokacija nije dostupna"
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Zadatak 4: Kamera
-    private fun setupCamera() {
-        ibCamera.setOnClickListener {
-            if (!hasPermission(Manifest.permission.CAMERA)) {
-                permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA))
-                return@setOnClickListener
-            }
-            val photoFile = createImageFile()
-            photoUri = FileProvider.getUriForFile(
-                this,
-                "${packageName}.provider",
-                photoFile
-            )
-            cameraLauncher.launch(photoUri)
-        }
-    }
-
-    private fun createImageFile(): File {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Zadatak 6: Switch – ON učitaj sa API i upiši u bazu, svaki sledeći put prikaži title prvog posta
-    // Zadatak 9: Switch – OFF sačuvaj u SharedPreferences, prikaži prvi kontakt
-    private fun setupSwitch() {
-        switchPosts.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                // Switch je ON
-                lifecycleScope.launch(Dispatchers.IO) {
-                    val count = db.postDao().getCount()
-
-                    if (count == 0) {
-                        // PRVI PUT – dohvati sa API i upiši u bazu
-                        try {
-                            val response = RetrofitClient.api.getPosts()
-                            val first10 = response.posts.take(10)
-                            db.postDao().insertAll(first10)
-
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(
-                                    this@MainActivity,
-                                    "Upisano ${first10.size} postova",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        } catch (e: Exception) {
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(
-                                    this@MainActivity,
-                                    "Greška: ${e.message}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
-                    } else {
-                        // SVAKI SLEDEĆI PUT – prikaži title prvog posta iz baze
-                        val firstPost = db.postDao().getFirstPost()
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(
-                                this@MainActivity,
-                                firstPost?.title ?: "Nema postova",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-                }
-
-            } else {
-                // Switch je OFF – Zadatak 9
-                // Sačuvaj tekst iz TextView u SharedPreferences
-                val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                prefs.edit().putString(PREFS_TEKST, tvLocation.text.toString()).apply()
-
-                // Zameni tekst u TextView sa imenom prvog kontakta
-                val firstContact = getFirstContact()
-                tvLocation.text = firstContact ?: "Nema kontakata"
-            }
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Zadatak 7: Brisanje prvog posta; notifikacija ako je baza prazna
-    private fun setupDeleteButton() {
-        btnDelete.setOnClickListener {
-            lifecycleScope.launch(Dispatchers.IO) {
-                val firstPost = db.postDao().getFirstPost()
-
-                if (firstPost != null) {
-                    db.postDao().delete(firstPost)
-                    val remaining = db.postDao().getCount()
-
-                    withContext(Dispatchers.Main) {
-                        if (remaining == 0) {
-                            sendNoPostsNotification()
-                        } else {
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Post obrisan, ostalo: $remaining",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        sendNoPostsNotification()
-                    }
-                }
-            }
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    private fun setupNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Posts Channel",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            getSystemService(NotificationManager::class.java)
-                .createNotificationChannel(channel)
-        }
-    }
-
-    private fun sendNoPostsNotification() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            !hasPermission(Manifest.permission.POST_NOTIFICATIONS)) return
-
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("Postovi")
-            .setContentText("Nema više postova!")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .build()
-
-        NotificationManagerCompat.from(this).notify(NOTIF_ID, notification)
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Zadatak 9: Čitanje prvog kontakta iz Contacts aplikacije
-    private fun getFirstContact(): String? {
-        if (!hasPermission(Manifest.permission.READ_CONTACTS)) return null
-
-        val cursor = contentResolver.query(
-            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-            arrayOf(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME),
-            null,
-            null,
-            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC"
-        )
-
-        return cursor?.use {
-            if (it.moveToFirst()) {
-                it.getString(
-                    it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
-                )
-            } else null
+        public SubjectViewHolder(@NonNull View itemView) {
+            super(itemView);
+            tvNaziv = itemView.findViewById(R.id.tv_item_naziv);
+            tvDatum = itemView.findViewById(R.id.tv_item_datum);
         }
     }
 }
-```
 
----
 
-## BRZE NAPOMENE ZA KOLOKVIJUM
 
-### Česte greške koje padaju ljude:
+KORAK 10: Povezivanje Adaptera i liste unutar SubjectFragment.java, kao i na kupljenje podataka iz forme na klik dugmeta "Potvrdi"
 
-**1. Zaboravljeni `kotlin-kapt` plugin**
-Bez `id 'kotlin-kapt'` u build.gradle, Room neće da kompajlira.
+Gde to piše u tekstu?
+Pogledaj Zadatak 3 i kraj Zadatka 7:
 
-**2. Room na Main threadu**
-Svaki poziv na bazu mora biti unutar:
-```kotlin
-lifecycleScope.launch(Dispatchers.IO) {
-    // baza ovde
-    withContext(Dispatchers.Main) {
-        // UI promene ovde
+"3. SubjectFragment sadrži RecyclerView i služi za prikaz predmeta... (1)"
+"7. ...Klikom na potvrdu dodati predmet u RecyclerView. (2)"
+
+Šta tačno radiš na računaru:
+Otvori ponovo klasu SubjectFragment.java. Sada ćemo unutar nje napraviti praznu listu, povezati RecyclerView sa našim SubjectAdapter-om, a zatim izmeniti dugme "Potvrdi" da izvuče tekst iz polja i osveži ekran.
+
+Prebriši ceo kod unutar SubjectFragment.java i stavi ovu konačnu verziju:
+
+
+package com.example.kolokvijum1;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.CheckBox;
+import android.widget.DatePicker;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import java.util.ArrayList;
+
+public class SubjectFragment extends Fragment {
+
+    // 1. Deklarišemo listu, adapter i RecyclerView da budu dostupni u celoj klasi
+    private ArrayList<Subject> listaPredmeta;
+    private SubjectAdapter adapter;
+    private RecyclerView recyclerView;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_subject, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // 2. Inicijalizujemo praznu listu predmeta
+        listaPredmeta = new ArrayList<>();
+
+        // 3. Pronalazimo RecyclerView iz XML-a i povezujemo ga sa adapterom
+        recyclerView = view.findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext())); // Ovo govori listi da ide odozgo na dole
+        
+        adapter = new SubjectAdapter(listaPredmeta);
+        recyclerView.setAdapter(adapter);
+
+        // Pronalazimo zeleno dugme "Dodati"
+        Button btnDodati = view.findViewById(R.id.btn_dodati);
+        btnDodati.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                prikaziDijalogFormu();
+            }
+        });
+    }
+
+    private void prikaziDijalogFormu() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Dodaj novi predmet");
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_subject, null);
+        builder.setView(dialogView);
+
+        EditText etNaziv = dialogView.findViewById(R.id.et_naziv);
+        DatePicker datePicker = dialogView.findViewById(R.id.datePicker);
+        CheckBox cbActive = dialogView.findViewById(R.id.cb_active);
+
+        // KOD ZA DUGME POTVRDI (Izvlačenje podataka i ubacivanje u listu)
+        builder.setPositiveButton("Potvrdi", (dialog, which) -> {
+            // A. Uzimamo naziv iz EditText-a
+            String unetiNaziv = etNaziv.getText().toString();
+
+            // B. Izvlačimo datum iz DatePicker-a i pakujemo ga u String (format: dan.mesec.godina)
+            int dan = datePicker.getDayOfMonth();
+            int mesec = datePicker.getMonth() + 1; // Android broji mesece od 0, zato dodajemo 1
+            int godina = datePicker.getYear();
+            String unetiDatum = dan + "." + mesec + "." + godina + ".";
+
+            // C. Proveravamo da li je Checkbox štikliran
+            boolean unetiStatus = cbActive.isChecked();
+
+            // D. Pravimo novi predmet i dodajemo ga u našu listu
+            Subject noviPredmet = new Subject(unetiNaziv, unetiDatum, unetiStatus);
+            listaPredmeta.add(noviPredmet);
+
+            // E. KLJUČNA LINIJA: Javljamo adapteru da se lista promenila da bi je osvežio na ekranu!
+            adapter.notifyDataSetChanged();
+        });
+
+        builder.setNegativeButton("Odustani", (dialog, which) -> {
+            dialog.dismiss();
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 }
-```
 
-**3. Kamera pada na Android 7+**
-Bez FileProvider u Manifestu + file_paths.xml aplikacija pada pri pokušaju otvaranja kamere.
 
-**4. Notifikacije na Android 13+**
-Mora se dodati `POST_NOTIFICATIONS` permisija I zatražiti runtime.
 
-**5. `usesCleartextTraffic="true"` u Manifestu**
-Beeceptor koristi HTTP (ne HTTPS). Bez ovog atributa u `<application>` tagu, Retrofit neće moći da se poveže.
 
-### Ako API ne vraća očekivani JSON:
-Proveri strukturu odgovora na https://app.beeceptor.com/mock-server/dummy-json/posts i prilagodi `PostsResponse` wrapper klasu.
 
-### Senzori – ne zaboravi:
-- `onResume` → `registerListener`
-- `onPause` → `unregisterListener`
-- Implementiraj i `onAccuracyChanged` (čak i prazna metoda, mora postojati)
+KORAK 11: Kreiranje servisa koji radi na svakih minut vremena
+
+Gde to piše u tekstu?
+Pogledaj Zadatak 9 na svom papiru za Kolokvijum 1a:
+
+"9. Kreirati servis koji se pokreće na svaki minut (2.5)..."
+
+Šta tačno radiš na računaru:
+Servis se uvek pravi iz dva obavezna dela: kreiranje same Java klase i registracija te klase u AndroidManifest.xml fajlu (ako zaboraviš manifest, aplikacija će se srušiti ili servis uopšte neće raditi!).
+
+
+1. Deo: Pravljenje Java klase za servisDesni klik na tvoj glavni Java paket $\rightarrow$ New $\rightarrow$ Java Class.Nazovi je MojServis i klikni Enter.Prebriši sve unutra i prekopiraj ovaj univerzalni šablon za servis koji kuca na svakih 60 sekundi:Java
+
+package com.example.kolokvijum1;
+
+import android.app.Service;
+import android.content.Intent;
+import android.os.Handler;
+import android.os.IBinder;
+import android.widget.Toast;
+import androidx.annotation.Nullable;
+
+public class MojServis extends Service {
+
+    private Handler handler = new Handler();
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            // --- OVDE IDE LOGIKA KOJA SE PONAURANJA SVAKOG MINUTA ---
+            
+            // Privremena poruka da na ekranu vidiš da servis stvarno radi
+            Toast.makeText(MojServis.this, "Servis proverava...", Toast.LENGTH_SHORT).show();
+            
+            // Ovde ćemo u sledećem koraku dodati proveru dozvole za lokaciju!
+            
+            // ------------------------------------------------------
+            
+            // Ponovo pokreni isti ovaj kod za 60000 milisekundi (1 minut)
+            handler.postDelayed(this, 60000);
+        }
+    };
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        // Kada se servis pokrene, odmah pokrećemo našu Runnable petlju
+        handler.post(runnable);
+        return START_STICKY; // Kaže sistemu da ponovo pokrene servis ako ga ubije
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        // Zaustavljamo petlju kada se servis gasi da ne troši bateriju
+        handler.removeCallbacks(runnable);
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null; // Ovo nam ne treba za kolokvijum, samo ostavi null
+    }
+}
+
+
+
+
+2. Deo: Upisivanje servisa u Manifest (⚠️ NAJVAŽNIJE!)
+Sa leve strane u folderu manifests otvori fajl AndroidManifest.xml.
+
+Skroluj dole dok ne nađeš oznaku </activity>.
+
+Tačno ispod </activity>, a pre zatvaranja cele aplikacije </application>, upiši ovu jednu liniju:
+
+XML
+<service android:name=".MojServis" />
+
+
+3. Deo: Pokretanje servisa iz MainActivity
+Da bi se ovaj servis uopšte pokrenuo kada se aplikacija upali, moramo dodati jednu liniju koda u MainActivity.java na kraj onCreate metode:
+
+Java
+// Pokretanje našeg servisa čim se aplikacija upali
+Intent intent = new Intent(this, MojServis.class);
+startService(intent);
+
+
+
+VERZIJA ZA KOLOKVIJUM 1a: Provera Lokacije
+Šta se traži: Provera da li aplikacija ima dozvolu za lokaciju.
+Šta kucaš unutar run() metode:  
+
+@Override
+public void run() {
+    // 1. Provera sistemske dozvole za lokaciju
+    int provera = androidx.core.content.ContextCompat.checkSelfPermission(
+            MojServis.this, 
+            android.Manifest.permission.ACCESS_FINE_LOCATION
+    );
+
+    // 2. Ako je dozvola odobrena (GRANTED)
+    if (provera == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+        Toast.makeText(MojServis.this, "Lokacija dozvoljena!", Toast.LENGTH_SHORT).show();
+        // Ovde profesor traži i žutu pozadinu fragmenta/notifikaciju, ali i sam Toast ti donosi bodove za proveru!
+    } else {
+        Toast.makeText(MojServis.this, "Nemamo dozvolu za lokaciju!", Toast.LENGTH_SHORT).show();
+    }
+
+    // Ponovi petlju za 1 minut
+    handler.postDelayed(this, 60000);
+}
+
+
+
+VERZIJA ZA KOLOKVIJUM 1b: Provera Lokacije i Interneta
+Šta se traži: Provera dozvole za lokaciju i da li je uređaj konektovan na internet.
+Šta kucaš unutar run() metode:  Java
+
+@Override
+public void run() {
+    // 1. Provera dozvole za lokaciju
+    int proveraLokacije = androidx.core.content.ContextCompat.checkSelfPermission(
+            MojServis.this, 
+            android.Manifest.permission.ACCESS_FINE_LOCATION
+    );
+    boolean imaLokaciju = (proveraLokacije == android.content.pm.PackageManager.PERMISSION_GRANTED);
+
+    // 2. Provera da li ima interneta
+    android.net.ConnectivityManager cm = (android.net.ConnectivityManager) getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
+    android.net.NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+    boolean imaInternet = (activeNetwork != null && activeNetwork.isConnectedOrConnecting());
+
+    // 3. Profesorovi uslovi sa papira (Kombinacije)
+    if (imaLokaciju && !imaInternet) {
+        Toast.makeText(MojServis.this, "Lokacija dozvoljena!", Toast.LENGTH_SHORT).show();
+    } else if (!imaLokaciju && imaInternet) {
+        Toast.makeText(MojServis.this, "Konektovan", Toast.LENGTH_SHORT).show();
+    } else if (imaLokaciju && imaInternet) {
+        Toast.makeText(MojServis.this, "Sve OK!", Toast.LENGTH_SHORT).show();
+    }
+
+    // Ponovi petlju za 1 minut
+    handler.postDelayed(this, 60000);
+}
+
+
+VERZIJA ZA KOLOKVIJUM 1c: Provera Kamere
+Šta se traži: Provera da li je dozvoljena kamera.
+Šta kucaš unutar run() metode:  Java
+
+@Override
+public void run() {
+    // 1. Provera sistemske dozvole za kameru
+    int proveraKamere = androidx.core.content.ContextCompat.checkSelfPermission(
+            MojServis.this, 
+            android.Manifest.permission.CAMERA
+    );
+
+    // 2. Ako je kamera odobrena
+    if (proveraKamere == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+        Toast.makeText(MojServis.this, "Kamera je dozvoljena!", Toast.LENGTH_SHORT).show();
+    } else {
+        Toast.makeText(MojServis.this, "Kamera NIJE dozvoljena!", Toast.LENGTH_SHORT).show();
+    }
+
+    // Ponovi petlju za 1 minut
+    handler.postDelayed(this, 60000);
+}
